@@ -1,21 +1,54 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import Login from './components/Login/Login';
 import Home from './components/Home/Home';
 import MainHeader from './components/MainHeader/MainHeader';
+import Register from './components/Register/Register';
 import AuthContext from './store/auth-context';
 
 function App() {
-  const ctx = useContext(AuthContext);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+  useEffect(() => {
+    const storedUserLoggedInInformation = localStorage.getItem('isLoggedIn');
+    if (storedUserLoggedInInformation === '1') {
+      setIsLoggedIn(true);
+    }
+  }, []);
+  const loginHandler = (email, password) => {
+    localStorage.setItem('isLoggedIn', '1');
+    setIsLoggedIn(true);
+  };
+  const logoutHandler = () => {
+    localStorage.removeItem('isLoggedIn');
+    setIsLoggedIn(false);
+  };
+  const showRegisterHandler = () => {
+    setShowRegister(true)
+    setShowLogin(false)
+  }
+  const showLoginHandler = () => {
+    setShowLogin(true)
+    setShowRegister(false)
+  }
 
   return (
-    <React.Fragment>
-      <MainHeader />
-      <main>
-        {!ctx.isLoggedIn && <Login />}
-        {ctx.isLoggedIn && <Home />}
-      </main>
-    </React.Fragment>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn: isLoggedIn,
+      }}
+    >
+
+      <React.Fragment>
+        <MainHeader onLogout={logoutHandler} onRegisterClick={showRegisterHandler} onLoginClick={showLoginHandler} />
+        <main>
+          {(!isLoggedIn && showRegister) && <Register />}
+          {(!isLoggedIn && showLogin) && <Login onLogin={loginHandler} />}
+          {isLoggedIn && <Home onLogout={logoutHandler} />}
+        </main>
+      </React.Fragment>
+    </AuthContext.Provider>
   );
 }
 
